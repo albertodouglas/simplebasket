@@ -1,0 +1,241 @@
+﻿@page
+@model UI.Pages.Produtos.IndexModel
+@{
+
+}
+<link href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/5.2.0/css/bootstrap.min.css" rel="stylesheet" />
+<link href="https://cdn.datatables.net/1.12.1/css/dataTables.bootstrap5.min.css" rel="stylesheet" />
+
+<link href="https://cdn.datatables.net/responsive/2.3.0/css/responsive.dataTables.min.css" rel="stylesheet" />
+
+<style>
+    .alinhaDireita {
+        text-align: right !important;
+        padding-right: 25px !important;
+    }
+
+    .centro {
+        text-align: center !important;
+    }
+
+    hr {
+        margin: 5px;
+    }
+</style>
+@Html.AntiForgeryToken()
+
+<header class="page-header page-header-compact page-header-light border-bottom bg-white mb-4">
+    <div class="container-fluid px-4">
+        <div class="page-header-content">
+            <div class="row align-items-center justify-content-between pt-3">
+                <div class="col-auto mb-3">
+                    <h1 class="page-header-title">
+                        Lista de Produtos
+                    </h1>
+                </div>
+                <div class="col-12 col-xl-auto mb-3">
+                    <a class="btn btn-sm btn-light text-primary" href="/Produtos/Create">
+                        <i class="fa fa-plus" style="margin-top: 5px;"></i>
+                        Adicionar Novo Produto
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</header>
+<div class="row">
+    <div class="col-md-10">
+        <table id="tblProdutos" class="table table-striped table-responsive" style="width: 100%;">
+            <thead>
+                <tr>
+                    <th></th>
+                    <th>Nome</th>
+                    <th>Descrição</th>
+                    <th style="text-align: right !important;">Preço</th>
+                    <th class="centro">Dt Criação</th>
+                    <th>Ação</th>
+                </tr>
+            </thead>
+        </table>
+    </div>
+    <div class="col-md-2">
+        <i class="fas fa-shopping-cart" style="font-size: 25px; color: mediumseagreen;"></i>
+        <div class="col-md-12" id="divCarrinho" style="background-color: azure; border: solid 1px azure; border-radius: 10px; font-size: 13px;">
+        </div>
+    </div>
+</div>
+
+
+@section scripts {
+    <script src="https://cdn.datatables.net/1.12.1/js/jquery.dataTables.min.js"></script>
+    <script src="https://cdn.datatables.net/1.12.1/js/dataTables.bootstrap5.min.js"></script>
+    <script src="https://cdn.datatables.net/responsive/2.3.0/js/dataTables.responsive.min.js"></script>
+
+    <script>
+        var tabela, carrinho;
+        $(document).ready(function () {
+            tabela = $("#tblProdutos").DataTable({
+                responsive: true,
+                processing: true,
+                serverSide: true,
+                language: {
+                    "url": "/language/Portuguese.json"
+                },
+                pageLength: 10,
+                order: [],
+                rowId: "Id",
+                "ajax": {
+                    "url": "/Produtos/Index?handler=Records",
+                    "type": "POST",
+                    "headers": { "RequestVerificationToken": $('input[name="__RequestVerificationToken"]').val() },
+                    "async": true,
+                    "data": function (d) {
+                    }
+                },
+                "columns": [
+                    {
+                        data: null, "sorting": false, "orderable": false, "render": function (data, type, row) {
+                            return `<img style='height: 70px; width: 70px;' alt='Produto' src='` + data.pathImagem + `'>`;
+                        }
+                    },
+                    {
+                        data: "nome", "autoWidth": true
+                    },
+                    {
+                        data: "descricao", "autoWidth": true
+                    },
+                    {
+                        data: "preco", "autoWidth": true, class: "alinhaDireita", render: function (data, type, row) {
+                            return data.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })
+                        }
+                    },
+                    {
+                        data: "dataCriacao", "autoWidth": true, class: "centro", render: function (data, type, row) {
+                            return data == null ? "" : moment(data).format("DD/MM/YYYY HH:mm");
+                        }
+                    },
+                    {
+                        data: null, "width": "60px", "sorting": false, "render": function (data, type, row) {
+                            return `<div style="display: flex; width: 100px;">
+                                                        <a href="/Produtos/Edit?id=` + data.id + `"><i title="Editar" class="fa fa-edit" style="color: DodgerBlue;"></i></a>
+                                                        <a style="margin-left: 8px;" href="/Produtos/Delete?id=` + data.id + `"><i title="Excluir" class='fas fa-trash' style="color: red;"></i></a>
+                                                        <a style="margin-left: 8px;" href="#" onclick="adicionarAoCarrinho('` + data.id + `')"><i title="Adicionar ao carrinho" class="fas fa-cart-plus"></i></a>
+                                                    </div>`;
+                        }
+                    }
+                ]
+            });
+
+            carregarCarrinho();
+        });
+
+        function carregarCarrinho() {
+            var produtos;
+            $.ajax({
+                type: "POST",
+                url: "/Produtos/Index?handler=ListarCarrinho",
+                beforeSend: function (xhr) {
+                    xhr.setRequestHeader("RequestVerificationToken", $('input:hidden[name="__RequestVerificationToken"]').val())
+                },
+                data: {
+                },
+                dataType: "json",
+                async: false,
+                success: function (data) {
+                    $("#divCarrinho").html("");
+                    var html = "";
+                    if (data.result.length > 0) {
+                        produtos = data.result;
+                        var valorTotal = 0;
+                        $(produtos).each(function (index, item) {
+                            html += "<label><b>Produto:</b> </label> <span>" + item.nome + "</span><br>";
+                            html += "<label><b>Preço:</b> </label> <span>" + item.preco.toLocaleString("pt-BR", { style: "currency", currency: "BRL" }) + "</span>";
+                            html += `<i class='fa fa-trash' style='float: right; margin-right: 10px; cursor: pointer;' onclick="excluirDoCarrinho('` + item.id + `')"></i>`;
+                            html += "<hr />";
+                            valorTotal += parseFloat(item.preco);
+                        });
+                        html += "<b>VALOR TOTAL:</b> " + valorTotal.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
+                        html += "<hr />";
+                        html += "<button type='button' class='btn btn-success btn-xs' style='margin: 10px;' id='btnComprar' onclick='comprar()'>Comprar</button>";
+                        $("#divCarrinho").html(html);
+                    }
+                    else if (data.result.length != 0) {
+                        ShowMessage(data.result);
+                    }
+                    if (html == "") {
+                        $("#divCarrinho").html("<span>Seu carrinho está vazio</span>");
+                    }
+                }
+            });
+        }
+
+        function adicionarAoCarrinho(id) {
+            $.ajax({
+                type: "POST",
+                url: "/Produtos/Index?handler=AdicionarCarrinho",
+                beforeSend: function (xhr) {
+                    xhr.setRequestHeader("RequestVerificationToken", $('input:hidden[name="__RequestVerificationToken"]').val())
+                },
+                data: {
+                    produtoId: id
+                },
+                dataType: "json",
+                async: false,
+                success: function (data) {
+                    if (data.result == "OK") {
+                        carregarCarrinho();
+                    }
+                    else {
+                        ShowMessage(data.result);
+                    }
+                }
+            });
+        }
+
+        function excluirDoCarrinho(idCarrinho) {
+            $.ajax({
+                type: "POST",
+                url: "/Produtos/Index?handler=ExcluirCarrinho",
+                beforeSend: function (xhr) {
+                    xhr.setRequestHeader("RequestVerificationToken", $('input:hidden[name="__RequestVerificationToken"]').val())
+                },
+                data: {
+                    idCarrinho: idCarrinho
+                },
+                dataType: "json",
+                async: false,
+                success: function (data) {
+                    if (data.result === "OK") {
+                        carregarCarrinho();
+                    }
+                    else {
+                        ShowMessage(data.result);
+                    }
+                }
+            });
+        }
+
+        function comprar() {
+            $.ajax({
+                type: "POST",
+                url: "/Produtos/Index?handler=Comprar",
+                beforeSend: function (xhr) {
+                    xhr.setRequestHeader("RequestVerificationToken", $('input:hidden[name="__RequestVerificationToken"]').val())
+                },
+                data: {
+                },
+                dataType: "json",
+                async: false,
+                success: function (data) {
+                    if (data.result === "OK") {
+                        ShowMessage("Pedido efetuado com sucesso!");
+                        carregarCarrinho();
+                    }
+                    else {
+                        ShowMessage(data.result);
+                    }
+                }
+            });
+        }
+    </script>
+}

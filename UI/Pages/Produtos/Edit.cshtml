@@ -1,0 +1,94 @@
+﻿@page
+@model UI.Pages.Produtos.EditModel
+@{
+}
+
+@Html.AntiForgeryToken()
+
+<header class="page-header page-header-compact page-header-light border-bottom bg-white mb-4">
+    <div class="container-fluid px-4">
+        <div class="page-header-content">
+            <div class="row align-items-center justify-content-between pt-3">
+                <div class="col-auto mb-3">
+                    <h1 class="page-header-title">
+                        Cadastro de Produto
+                    </h1>
+                </div>
+                <div class="col-12 col-xl-auto mb-3">
+                    <a class="btn btn-sm btn-light text-primary" href="/Produtos/Index">
+                        <i class="fa fa-list" style="margin-top: 5px;"></i>
+                        Voltar para a lista de produtos
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</header>
+
+<div class="container">
+
+    <form method="post" enctype="multipart/form-data" id="formCreateProduto" autocomplete="off">
+
+        <div class="card-body">
+            <div class="row mb-3">
+                <div class="col-md-6">
+                    <label asp-for="Produto.Nome">Nome</label>
+                    <input required asp-for="Produto.Nome" type="text" class="form-control" placeholder="Informe nome">
+                </div>
+            </div>
+            <div class="row mb-3">
+                <div class="col-md-6">
+                    <label asp-for="Produto.Descricao">Descrição</label>
+                    <textarea rows="3" required asp-for="Produto.Descricao" type="text" class="form-control" placeholder="Informe descrição"></textarea>
+                </div>
+            </div>
+            <div class="row mb-3">
+                <div class="col-md-6">
+                    <label asp-for="Produto.Preco">Preço</label>
+                    <input required type="text" asp-for="Produto.Preco" class="form-control" placeholder="Informe preço">
+                </div>
+            </div>
+
+            <div class="row mb-3">
+                <div class="col-md-6">
+                    <label>Imagem Atual</label><br />
+                    <img height="100" width="100" id="imgProdutoAtual" /><br />
+                    <label asp-for="Produto.PathImagem">Foto/Imagem do Produto</label>
+                    <input type="file" id="fotoProduto" name="fotoProduto" accept="image/*" class="form-control" />
+                </div>
+            </div>
+
+            <button class="btn btn-primary" type="submit" id="btnSalvar">Salvar</button>
+
+        </div>
+    </form>
+
+</div>
+
+@section scripts {
+    <script>
+        $(document).ready(function () {
+            var img = document.getElementById("imgProdutoAtual");
+            img.src = String.raw`@Model.Produto.PathImagem`;
+        });
+
+        if ('@ViewData["erro"]' == 'True') {
+            ShowMessage('@Model.Mensagem');
+        }
+
+        if ('@ViewData["sucesso"]' == 'True') {
+            $.alert({
+                title: "Mensagem",
+                content: "Produto Editado com Sucesso!",
+                type: "green",
+                icon: 'fa fa-check',
+                theme: 'modern',
+                buttons: {
+                    ok: function () {
+                        window.location = "/Produtos/Index";
+                    }
+                }
+            });
+        }
+    </script>
+}

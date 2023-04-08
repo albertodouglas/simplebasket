@@ -1,0 +1,109 @@
+﻿@page
+@model UI.Pages.Account.RegisterModel
+@{
+    Layout = null;
+}
+
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - Registro</title>
+    <link rel="stylesheet" href="~/assets/css/main/app.css">
+    <link rel="stylesheet" href="~/assets/css/pages/auth.css">
+    <link rel="shortcut icon" href="~/assets/images/logo/favicon.svg" type="image/x-icon">
+    <link rel="shortcut icon" href="~/assets/images/logo/favicon.png" type="image/png">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/jquery-confirm/3.3.2/jquery-confirm.min.css">
+</head>
+
+<body>
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-confirm/3.3.2/jquery-confirm.min.js"></script>
+
+    <div id="auth">
+
+        <div class="row h-100">
+            <div class="col-lg-5 col-12">
+                <div id="auth-left">
+                    <h2 class="auth-title">Sign Up</h2>
+                    <p class="auth-subtitle mb-5">Informe seus dados para registrar em nosso website.</p>
+
+                    <form method="post" id="formCreate">
+                        <div class="form-group position-relative has-icon-left mb-4">
+                            <input required type="email" class="form-control form-control-xl" placeholder="Email" asp-for="UsuarioViewModel.Email">
+                            <div class="form-control-icon">
+                                <i class="bi bi-envelope"></i>
+                            </div>
+                        </div>
+                        <div class="form-group position-relative has-icon-left mb-4">
+                            <input required type="text" class="form-control form-control-xl" placeholder="Usuário" asp-for="UsuarioViewModel.Nome">
+                            <div class="form-control-icon">
+                                <i class="bi bi-person"></i>
+                            </div>
+                        </div>
+                        <div class="form-group position-relative has-icon-left mb-4">
+                            <input required type="password" class="form-control form-control-xl" placeholder="Senha" asp-for="UsuarioViewModel.Senha" >
+                            <div class="form-control-icon">
+                                <i class="bi bi-shield-lock"></i>
+                            </div>
+                        </div>
+                        <div class="form-group position-relative has-icon-left mb-4">
+                            <input required type="password" class="form-control form-control-xl" placeholder="Confirme Senha" id="confirmaSenha" asp-for="UsuarioViewModel.ConfirmaSenha">
+                            <div class="form-control-icon">
+                                <i class="bi bi-shield-lock"></i>
+                            </div>
+                        </div>
+                        <button class="btn btn-primary btn-block btn-lg shadow-lg mt-5">Registrar</button>
+                    </form>
+                    <div class="text-center mt-5 text-lg fs-4">
+                        <p class='text-gray-600'>
+                            Já tem uma conta?<br /><a asp-page="Login" class="font-bold"> Log in</a>.
+                        </p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-7 d-none d-lg-block">
+                <div id="auth-right">
+                </div>
+            </div>
+        </div>
+
+    </div>
+    <script>
+
+        if ('@ViewData["erro"]' == 'True') {
+            ShowMessage('@Model.Mensagem');
+        }
+
+        if ('@ViewData["sucesso"]' == 'True') {
+            $.alert({
+                title: "Mensagem",
+                content: "Usuário Cadastrado com Sucesso! Pressione OK para ir para a tela de Login.",
+                type: "green",
+                icon: 'fa fa-check',
+                theme: 'modern',
+                buttons: {
+                    ok: function () {
+                        window.location = "/Account/Login";
+                    }
+                }
+            });
+        }
+
+        function ShowMessage(msg) {
+            $.alert({
+                title: "Aviso",
+                content: msg,
+                theme: 'modern',
+                buttons: {
+                    close: function () {
+                    }
+                }
+            });
+        }
+    </script>
+</body>
+
+</html>
